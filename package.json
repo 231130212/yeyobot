@@ -1,0 +1,17 @@
+{
+  "name": "bot-discord-sarkas",
+  "version": "1.0.0",
+  "description": "Bot Discord yang bisa diajak ngobrol, dengan kepribadian sarkas dan satir.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "discord.js": "^14.16.0"
+  }
+}
