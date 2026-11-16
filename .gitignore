@@ -1,2 +1,4 @@
 node_modules/
 .env
+# Ingatan obrolan bot (berisi isi chat, jangan di-upload)
+data/
