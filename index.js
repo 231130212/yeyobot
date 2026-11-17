@@ -5,9 +5,10 @@ import * as memory from "./memory.js";
 import { commands, buildPrompt, avatarReply, spamReply, specialUsers, tagName } from "./commands.js";
 import { moderationCommands, handleModeration, setupLogging } from "./moderation.js";
 import { setupServerLog } from "./serverlog.js";
+import { helpCommands, handleHelp } from "./help.js";
 import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./music.js";
 
-const ALL_COMMANDS = [...commands, ...moderationCommands, ...musicCommands];
+const ALL_COMMANDS = [...helpCommands, ...commands, ...moderationCommands, ...musicCommands];
 
 // ===== Pengaturan =====
 // Nama channel tempat bot membalas SEMUA pesan tanpa perlu di-mention (kosongkan kalau tidak mau)
@@ -189,6 +190,7 @@ discord.on(Events.MessageCreate, async (message) => {
 });
 
 discord.on(Events.InteractionCreate, async (interaction) => {
+  if (await handleHelp(interaction).catch((error) => console.error("Gagal /help:", error))) return;
   if (interaction.isAutocomplete()) {
     await handleMusicAutocomplete(interaction).catch(() => {});
     return;

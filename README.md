@@ -28,6 +28,7 @@ Bot nggak bisa disuruh nge-tag atau ngatain orang lain lewat chat. Balasannya ng
 
 | Command | Fungsi |
 |---|---|
+| `/help` | Panduan buat pengguna baru, dengan menu pilihan kategori |
 | `/avatar [target]` | Tampilkan foto profil ukuran besar |
 | `/roast target:@teman` | Nge-tag dan nyindir teman secara ringan (yang disindir kelakuannya, bukan fisiknya). Kalau dia lagi dengerin Spotify atau main game, itu ikut jadi bahan |
 | `/roastlagu [target]` | Roasting lagu yang lagi didengerin seseorang di Spotify |
