@@ -7,7 +7,7 @@ Bot Discord yang bisa diajak ngobrol dengan gaya sarkas dan satir. Otaknya bisa 
 1. **Bikin bot di Discord**
    - Buka https://discord.com/developers/applications, lalu klik **New Application**.
    - Di menu **Bot**, klik **Reset Token** dan salin tokennya.
-   - Masih di menu **Bot**, nyalakan **Message Content Intent** dan **Presence Intent**. Keduanya wajib: yang pertama supaya bot bisa baca pesan, yang kedua supaya bot bisa lihat lagu Spotify/game di profil orang.
+   - Masih di menu **Bot**, nyalakan **ketiga** Privileged Gateway Intents: **Presence Intent** (lihat lagu Spotify/game di profil), **Server Members Intent** (log role dan member), dan **Message Content Intent** (baca pesan). Semuanya wajib, kalau tidak bot gagal nyala.
    - Di menu **OAuth2 → URL Generator**, centang `bot`, lalu centang izin *Send Messages*, *Read Message History*, dan *View Channels*. Buka URL yang muncul untuk mengundang bot ke servermu.
 
 2. **Ambil API key Gemini (gratis)** di https://aistudio.google.com/apikey. Cukup login pakai akun Google.
@@ -37,10 +37,23 @@ Bot Discord yang bisa diajak ngobrol dengan gaya sarkas dan satir. Otaknya bisa 
 | `/roastlagu [target]` | Roasting lagu yang lagi didengerin seseorang di Spotify |
 | `/ramal [pertanyaan]` | Ramalan nyeleneh ala dukun sok tahu |
 | `/nasihat masalah:...` | Nasihat yang kedengarannya bijak tapi nyeleneh |
+| `/pilih pilihan:a, b, c [pertanyaan]` | Bingung milih? Bot milihin secara acak plus alasan ngawur |
 | `/spam target [jumlah]` | Panggil-panggil seseorang 1–5 kali dengan jeda 2 detik (jeda 1 menit sebelum bisa dipakai lagi) |
 | `/reset` | Hapus ingatan bot di channel ini |
 
 Slash command didaftarkan otomatis setiap bot menyala.
+
+## Radio
+
+Bot bisa muter radio online di voice channel. Stasiunnya dicari lewat [Radio Browser](https://www.radio-browser.info) (gratis, ada ribuan radio dari seluruh dunia).
+
+| Command | Fungsi |
+|---|---|
+| `/radio putar stasiun` | Masuk ke voice channel lo dan muter radio. Ketik nama radio (misalnya `prambors`, `lofi`, `jazz`), lalu pilih dari daftar yang muncul |
+| `/radio sekarang` | Lihat radio yang lagi diputer |
+| `/radio stop` | Matikan radio dan keluar dari voice |
+
+Bot keluar sendiri kalau voice channel-nya udah kosong. Bot butuh izin **Connect** dan **Speak** di voice channel. Fitur ini butuh Node.js 22.12 atau lebih baru.
 
 ## Moderasi
 
@@ -54,13 +67,24 @@ Command ini hanya muncul untuk orang yang punya izin yang sesuai di server.
 | `/ban target [alasan] [hapus_pesan]` | Ban, bisa sekalian hapus pesannya | Ban Members |
 | `/unban user_id [alasan]` | Cabut ban (pakai ID user) | Ban Members |
 | `/hapus jumlah` | Hapus 1–100 pesan terakhir di channel | Manage Messages |
+| `/setlog [channel] [jenis]` | Pilih channel log untuk server ini (bisa beda tiap server) | Manage Server |
 
 Pengaman bawaan: tidak bisa menindak diri sendiri, owner server, bot ini, atau orang yang role-nya setara atau lebih tinggi.
 
 **Supaya moderasi jalan:**
 1. Undang bot dengan izin tambahan: *Moderate Members, Kick Members, Ban Members, Manage Messages, Embed Links*.
 2. Di **Server Settings → Roles**, seret role bot ke **atas** role member biasa. Bot hanya bisa menindak orang yang role-nya di bawah role bot.
-3. (Opsional) Buat channel `#log-moderasi`, sebaiknya privat untuk moderator saja. Bot akan mencatat tindakan moderasi serta pesan yang dihapus dan diedit di sana.
+3. (Opsional) Buat channel log, sebaiknya privat untuk moderator saja, lalu jalankan `/setlog channel:#nama-channel`. Kalau nggak pakai `/setlog`, bot otomatis nyari channel bernama `#log-moderasi`. Bot akan mencatat tindakan moderasi serta pesan yang dihapus dan diedit di sana.
+
+## Log aktivitas server
+
+Pilih channel-nya pakai `/setlog`, atau buat channel bernama `#log-server` (sebaiknya privat untuk admin). Bot akan mencatat di sana:
+- Masuk, keluar, dan pindah voice channel
+- Role ditambah atau dicabut
+- Ganti nickname
+- Member masuk server (ada peringatan kalau akunnya baru dibuat kurang dari 7 hari) dan keluar server
+
+Kalau `#log-server` nggak ada, log dikirim ke `#log-moderasi`. Fitur ini butuh **Server Members Intent** dinyalakan di Developer Portal.
 
 ## Ingatan
 

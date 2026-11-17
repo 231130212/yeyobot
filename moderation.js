@@ -1,8 +1,6 @@
 // Moderasi server: /timeout, /untimeout, /kick, /ban, /unban, /hapus + log ke channel khusus
-import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags, Events } from "discord.js";
-
-// Nama channel tempat log moderasi dikirim. Kalau channel-nya tidak ada, log dilewati saja.
-const LOG_CHANNEL = process.env.LOG_CHANNEL ?? "log-moderasi";
+import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags, Events, ChannelType } from "discord.js";
+import { findLogChannel as findChannel, setLogChannel } from "./settings.js";
 
 const DURATIONS = [
   { name: "1 menit", value: 60 },
@@ -70,6 +68,26 @@ export const moderationCommands = [
     .addIntegerOption((o) =>
       o.setName("jumlah").setDescription("Berapa pesan? (1-100)").setRequired(true).setMinValue(1).setMaxValue(100),
     ),
+  new SlashCommandBuilder()
+    .setName("setlog")
+    .setDescription("Atur channel tempat bot ngirim log di server ini")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .addChannelOption((o) =>
+      o
+        .setName("channel")
+        .setDescription("Channel log-nya (kosongkan = hapus pengaturan, balik ke default)")
+        .addChannelTypes(ChannelType.GuildText),
+    )
+    .addStringOption((o) =>
+      o
+        .setName("jenis")
+        .setDescription("Log yang mana? (default: semua)")
+        .addChoices(
+          { name: "Semua log", value: "semua" },
+          { name: "Moderasi (pesan dihapus/diedit, kick, ban, dll.)", value: "moderasi" },
+          { name: "Aktivitas server (voice, role, nickname, member masuk/keluar)", value: "server" },
+        ),
+    ),
 ].map((command) => command.toJSON());
 
 // ===== Bantuan =====
@@ -91,7 +109,7 @@ function nameOf(member, user) {
 }
 
 function findLogChannel(guild) {
-  return guild.channels.cache.find((c) => c.name === LOG_CHANNEL && c.isTextBased());
+  return findChannel(guild, "moderasi");
 }
 
 async function sendLog(guild, embed) {
@@ -251,6 +269,30 @@ const HANDLERS = {
     await interaction.editReply(text);
     await logAction(interaction, "🧹 Hapus pesan", `${deleted.size} pesan di <#${interaction.channelId}>`, 0x95a5a6);
   },
+
+  async setlog(interaction) {
+    const channel = interaction.options.getChannel("channel");
+    const kind = interaction.options.getString("jenis") ?? "semua";
+    const kinds = kind === "semua" ? ["moderasi", "server"] : [kind];
+    const label = { semua: "Semua log", moderasi: "Log moderasi", server: "Log aktivitas server" }[kind];
+
+    if (channel) {
+      const perms = channel.permissionsFor(interaction.guild.members.me);
+      if (!perms?.has(["ViewChannel", "SendMessages", "EmbedLinks"])) {
+        return privateReply(
+          interaction,
+          `Gue nggak bisa nulis di ${channel}. Kasih gue izin *View Channel*, *Send Messages*, dan *Embed Links* di sana dulu.`,
+        );
+      }
+    }
+    for (const k of kinds) setLogChannel(interaction.guildId, k, channel?.id ?? null);
+    return privateReply(
+      interaction,
+      channel
+        ? `✅ ${label} sekarang dikirim ke ${channel}.`
+        : `✅ Pengaturan ${label.toLowerCase()} dihapus. Gue balik nyari channel bernama #log-moderasi / #log-server.`,
+    );
+  },
 };
 
 /** Jalankan command moderasi. Mengembalikan true kalau command-nya memang command moderasi. */
@@ -277,7 +319,7 @@ export function setupLogging(client) {
   client.on(Events.MessageDelete, async (message) => {
     // Pesan yang dikirim sebelum bot nyala tidak diketahui isinya, jadi dilewati
     if (message.partial || !message.guild || message.author?.bot) return;
-    if (message.channel.name === LOG_CHANNEL) return;
+    if (findLogChannel(message.guild)?.id === message.channelId) return; // jangan nge-log channel log itu sendiri
 
     const parts = [];
     if (message.content) parts.push(cut(message.content));

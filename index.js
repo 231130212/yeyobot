@@ -4,8 +4,10 @@ import { askAI, checkConfig, describeModel, errorReply } from "./ai.js";
 import * as memory from "./memory.js";
 import { commands, buildPrompt, avatarReply, spamReply, specialUsers, tagName } from "./commands.js";
 import { moderationCommands, handleModeration, setupLogging } from "./moderation.js";
+import { setupServerLog } from "./serverlog.js";
+import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./music.js";
 
-const ALL_COMMANDS = [...commands, ...moderationCommands];
+const ALL_COMMANDS = [...commands, ...moderationCommands, ...musicCommands];
 
 // ===== Pengaturan =====
 // Nama channel tempat bot membalas SEMUA pesan tanpa perlu di-mention (kosongkan kalau tidak mau)
@@ -13,6 +15,8 @@ const FREE_CHAT_CHANNEL = process.env.FREE_CHAT_CHANNEL ?? "ngobrol-sama-bot";
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 const MAX_IMAGES = 3;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB per gambar
+// Balasan AI nggak boleh nge-ping siapa pun (termasuk @everyone), kecuali notif "membalas" ke pengirim
+const NO_PINGS = { parse: [], repliedUser: true };
 
 for (const problem of [process.env.DISCORD_TOKEN ? null : "DISCORD_TOKEN belum diisi", checkConfig()]) {
   if (problem) {
@@ -27,6 +31,8 @@ const discord = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.GuildMembers, // untuk log role/nickname/member masuk-keluar (wajib nyalakan Server Members Intent)
+    GatewayIntentBits.GuildVoiceStates, // untuk fitur radio
     GatewayIntentBits.GuildPresences, // untuk baca status Spotify/game (wajib nyalakan Presence Intent di portal)
   ],
   partials: [Partials.Channel], // dibutuhkan supaya bot bisa menerima DM
@@ -127,6 +133,8 @@ discord.on(Events.GuildCreate, registerCommands);
 
 // Log pesan yang dihapus/diedit ke channel #log-moderasi
 setupLogging(discord);
+setupMusic(discord);
+setupServerLog(discord);
 
 discord.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
@@ -136,8 +144,17 @@ discord.on(Events.MessageCreate, async (message) => {
   const isFreeChat = FREE_CHAT_CHANNEL && message.channel.name === FREE_CHAT_CHANNEL;
   if (!isDM && !isMentioned && !isFreeChat) return;
 
-  // Hapus mention bot dari teks
-  const content = message.content.replace(new RegExp(`<@!?${discord.user.id}>`, "g"), "").trim();
+  // Hapus mention bot dari teks, dan ubah mention orang/role lain jadi nama biasa.
+  // Jadi AI nggak pernah lihat kode mention, dan nggak bisa disuruh nge-tag orang.
+  const content = message.content
+    .replace(new RegExp(`<@!?${discord.user.id}>`, "g"), "")
+    .replace(/<@!?(\d+)>/g, (_, id) => {
+      const member = message.mentions.members?.get(id);
+      const user = message.mentions.users.get(id);
+      return `@${member?.displayName ?? user?.displayName ?? user?.username ?? "seseorang"}`;
+    })
+    .replace(/<@&(\d+)>/g, (_, id) => `@${message.mentions.roles.get(id)?.name ?? "role"}`)
+    .trim();
 
   if (content.toLowerCase() === "!reset") {
     memory.resetHistory(message.channel.id);
@@ -164,17 +181,22 @@ discord.on(Events.MessageCreate, async (message) => {
     images,
     async (reply) => {
       const parts = splitMessage(reply);
-      await message.reply(parts[0]);
-      for (const part of parts.slice(1)) await message.channel.send(part);
+      await message.reply({ content: parts[0], allowedMentions: NO_PINGS });
+      for (const part of parts.slice(1)) await message.channel.send({ content: part, allowedMentions: NO_PINGS });
     },
     () => message.channel.sendTyping(),
   );
 });
 
 discord.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isAutocomplete()) {
+    await handleMusicAutocomplete(interaction).catch(() => {});
+    return;
+  }
   if (!interaction.isChatInputCommand()) return;
 
   if (await handleModeration(interaction)) return;
+  if (await handleMusic(interaction)) return;
 
   if (interaction.commandName === "avatar") {
     await avatarReply(interaction).catch((error) => console.error("Gagal /avatar:", error));
@@ -201,10 +223,19 @@ discord.on(Events.InteractionCreate, async (interaction) => {
 
   // Discord minta respons dalam 3 detik, jadi tampilkan "sedang berpikir..." dulu
   await interaction.deferReply();
+
+  // /roast dan /roastlagu nge-tag targetnya (cuma target itu yang ke-ping, dan bukan bot)
+  const target = ["roast", "roastlagu"].includes(interaction.commandName)
+    ? interaction.options.getUser("target")
+    : null;
+  const pingTarget = target && !target.bot && target.id !== interaction.user.id;
+  const firstMentions = pingTarget ? { parse: [], users: [target.id] } : NO_PINGS;
+
   await respond(interaction.channelId, prompt, [], async (reply) => {
     const parts = splitMessage(reply);
-    await interaction.editReply(parts[0]);
-    for (const part of parts.slice(1)) await interaction.followUp(part);
+    if (pingTarget) parts[0] = `<@${target.id}> ${parts[0]}`;
+    await interaction.editReply({ content: parts[0], allowedMentions: firstMentions });
+    for (const part of parts.slice(1)) await interaction.followUp({ content: part, allowedMentions: NO_PINGS });
   });
 });
 
@@ -212,6 +243,7 @@ discord.on(Events.InteractionCreate, async (interaction) => {
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, () => {
     memory.saveNow();
+    stopAllMusic();
     discord.destroy();
     process.exit(0);
   });

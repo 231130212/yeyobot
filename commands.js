@@ -26,6 +26,19 @@ export const commands = [
     .addStringOption((o) =>
       o.setName("masalah").setDescription("Lagi ada masalah apa?").setRequired(true).setMaxLength(300),
     ),
+  new SlashCommandBuilder()
+    .setName("pilih")
+    .setDescription("Bingung? Biar gue yang milihin (sambil nyinyir)")
+    .addStringOption((o) =>
+      o
+        .setName("pilihan")
+        .setDescription("Pisahkan pakai koma, contoh: nasgor, mie ayam, seblak")
+        .setRequired(true)
+        .setMaxLength(300),
+    )
+    .addStringOption((o) =>
+      o.setName("pertanyaan").setDescription("Soal apa? Contoh: makan apa malam ini").setMaxLength(100),
+    ),
   new SlashCommandBuilder().setName("reset").setDescription("Hapus ingatan Yeyo Rosting di channel ini"),
   new SlashCommandBuilder()
     .setName("spam")
@@ -176,6 +189,32 @@ export function buildPrompt(interaction, botUserId) {
   const name = displayName(interaction);
 
   switch (interaction.commandName) {
+    case "pilih": {
+      // Pisahkan pakai koma, garis miring, atau kata "atau"
+      const options = [
+        ...new Set(
+          interaction.options
+            .getString("pilihan", true)
+            .split(/,|\/|\batau\b|\bor\b/i)
+            .map((o) => o.trim())
+            .filter(Boolean),
+        ),
+      ].slice(0, 10);
+      if (options.length < 2) {
+        return {
+          text: "Pilihannya cuma satu, terus gue disuruh milih apa? Itu namanya takdir, bukan pilihan. Pisahin pakai koma ya, contoh: `nasgor, mie ayam, seblak`.",
+        };
+      }
+      const question = interaction.options.getString("pertanyaan");
+      // Yang milih kode (acak beneran), AI cuma ngasih alasan ngawur
+      const chosen = options[Math.floor(Math.random() * options.length)];
+      return (
+        `[${name}]: (pakai /pilih${question ? ` soal: ${question}` : ""}) Pilihannya: ${options.join(", ")}. ` +
+        `Lo udah memilih: "${chosen}". Umumin pilihan itu dengan tegas (tulis pilihannya pakai **bold**), ` +
+        `terus kasih alasan yang sok meyakinkan tapi ngawur dan lucu, dan boleh nyindir pilihan lainnya. 1-3 kalimat. ` +
+        `Jangan ganti pilihannya.`
+      );
+    }
     case "roastlagu": {
       const user = interaction.options.getUser("target") ?? interaction.user;
       const member =
