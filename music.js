@@ -74,14 +74,16 @@ function searchStations(query, limit = 10) {
   return radioApi(`stations/search?${params}`);
 }
 
+const isSafeStation = (s) => /^https?:\/\//i.test(s?.url_resolved || s?.url || "");
+
 async function findStation(value) {
   // Dari autocomplete, nilainya UUID stasiun. Kalau user ngetik manual, cari berdasarkan nama.
   if (/^[0-9a-f-]{36}$/i.test(value)) {
     const [station] = await radioApi(`stations/byuuid/${value}`);
-    if (station) return station;
+    if (isSafeStation(station)) return station;
   }
-  const [station] = await searchStations(value, 1);
-  return station ?? null;
+  const stations = await searchStations(value, 5);
+  return stations.find(isSafeStation) ?? null;
 }
 
 function stationLabel(station) {
@@ -104,6 +106,8 @@ function stopSession(guildId) {
 
 function playStream(session) {
   const url = session.station.url_resolved || session.station.url;
+  // Keamanan: cuma buka link http/https. Link lain (misalnya file://) bisa dipakai buat baca file di server.
+  if (!/^https?:\/\//i.test(url)) throw new Error("Link radio nggak valid");
   // ffmpeg langsung ngeluarin Opus (format Discord), jadi hemat CPU. Ada sambung ulang otomatis juga.
   const ffmpeg = new prism.FFmpeg({
     args: [
