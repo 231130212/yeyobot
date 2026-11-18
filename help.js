@@ -80,7 +80,8 @@ const PAGES = {
       `\`/kick\` Keluarin dari server.\n` +
       `\`/ban\` \`/unban\` Ban dan cabut ban.\n` +
       `\`/hapus jumlah\` Hapus 1–100 pesan sekaligus.\n` +
-      `\`/setlog channel:#log\` Pilih channel buat log.\n\n` +
+      `\`/setlog channel:#log\` Pilih channel buat log.\n` +
+      `\`/giveaway mulai\` Bikin giveaway (lalu \`akhiri\`, \`reroll\`, atau \`batal\`). Peserta ikut lewat tombol 🎉.\n\n` +
       `**Log yang gue catat:** pesan dihapus/diedit, tindakan moderasi, masuk/keluar voice, role, nickname, dan member masuk/keluar.\n\n` +
       `Supaya moderasi jalan, seret role gue ke **atas** role member di Server Settings → Roles.`,
   },

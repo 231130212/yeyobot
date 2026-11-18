@@ -67,8 +67,24 @@ Command ini hanya muncul untuk orang yang punya izin yang sesuai di server.
 | `/unban user_id [alasan]` | Cabut ban (pakai ID user) | Ban Members |
 | `/hapus jumlah` | Hapus 1–100 pesan terakhir di channel | Manage Messages |
 | `/setlog [channel] [jenis]` | Pilih channel log untuk server ini (bisa beda tiap server) | Manage Server |
+| `/giveaway mulai/akhiri/reroll/batal` | Atur giveaway (lihat bagian Giveaway) | Manage Server |
 
 Pengaman bawaan: tidak bisa menindak diri sendiri, owner server, bot ini, atau orang yang role-nya setara atau lebih tinggi. Bot hanya bisa menindak orang yang role-nya di bawah role bot.
+
+## Giveaway
+
+Khusus staff. Defaultnya cuma yang punya izin **Manage Server** yang bisa pakai.
+
+| Command | Fungsi |
+|---|---|
+| `/giveaway mulai hadiah durasi [pemenang] [channel] [syarat_role] [keterangan]` | Mulai giveaway. Durasi pakai format `30m`, `2h`, `1d`, `1d12h` (1 menit sampai 30 hari), pemenang 1–20 |
+| `/giveaway akhiri giveaway` | Akhiri sekarang dan undi pemenangnya |
+| `/giveaway reroll giveaway [jumlah]` | Undi pemenang tambahan (yang udah menang nggak ikut diundi lagi) |
+| `/giveaway batal giveaway` | Batalin tanpa pemenang |
+
+Peserta ikut dengan klik tombol 🎉 (klik lagi buat batal ikut). Kalau `syarat_role` diisi, cuma yang punya role itu yang boleh ikut. Pemenang diumumin dan di-tag otomatis waktu durasinya habis. Giveaway tetap jalan walau bot restart, karena datanya disimpan di `data/giveaways.json`.
+
+**Biar role staff bisa pakai tanpa izin Manage Server:** buka **Server Settings → Integrations → Yeyo Rosting → /giveaway**, lalu tambahkan role staff dan centang ✅.
 
 ## Log
 

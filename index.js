@@ -6,9 +6,10 @@ import { commands, buildPrompt, avatarReply, spamReply, specialUsers, tagName } 
 import { moderationCommands, handleModeration, setupLogging } from "./moderation.js";
 import { setupServerLog } from "./serverlog.js";
 import { helpCommands, handleHelp } from "./help.js";
+import { giveawayCommands, handleGiveaway, handleGiveawayAutocomplete, setupGiveaways } from "./giveaway.js";
 import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./music.js";
 
-const ALL_COMMANDS = [...helpCommands, ...commands, ...moderationCommands, ...musicCommands];
+const ALL_COMMANDS = [...helpCommands, ...commands, ...moderationCommands, ...musicCommands, ...giveawayCommands];
 
 // ===== Pengaturan =====
 // Nama channel tempat bot membalas SEMUA pesan tanpa perlu di-mention (kosongkan kalau tidak mau)
@@ -136,6 +137,7 @@ discord.on(Events.GuildCreate, registerCommands);
 setupLogging(discord);
 setupMusic(discord);
 setupServerLog(discord);
+setupGiveaways(discord);
 
 discord.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
@@ -192,9 +194,11 @@ discord.on(Events.MessageCreate, async (message) => {
 discord.on(Events.InteractionCreate, async (interaction) => {
   if (await handleHelp(interaction).catch((error) => console.error("Gagal /help:", error))) return;
   if (interaction.isAutocomplete()) {
-    await handleMusicAutocomplete(interaction).catch(() => {});
+    const handler = interaction.commandName === "giveaway" ? handleGiveawayAutocomplete : handleMusicAutocomplete;
+    await handler(interaction).catch(() => {});
     return;
   }
+  if (await handleGiveaway(interaction).catch((error) => console.error("Gagal giveaway:", error))) return;
   if (!interaction.isChatInputCommand()) return;
 
   if (await handleModeration(interaction)) return;
