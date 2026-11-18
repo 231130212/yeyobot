@@ -1,6 +1,6 @@
 // Moderasi server: /timeout, /untimeout, /kick, /ban, /unban, /hapus + log ke channel khusus
 import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags, Events, ChannelType } from "discord.js";
-import { findLogChannel as findChannel, setLogChannel } from "./settings.js";
+import { findLogChannel as findChannel, setLogChannel } from "../storage/settings.js";
 
 const DURATIONS = [
   { name: "1 menit", value: 60 },

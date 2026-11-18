@@ -1,14 +1,14 @@
-import "./load-env.js"; // harus paling atas
+import "./src/system/load-env.js"; // harus paling atas
 import { Client, Events, GatewayIntentBits, Partials, ChannelType } from "discord.js";
-import { askAI, checkConfig, describeModel, errorReply } from "./ai.js";
-import * as memory from "./memory.js";
-import { commands, buildPrompt, avatarReply, spamReply, specialUsers, tagName } from "./commands.js";
-import { moderationCommands, handleModeration, setupLogging } from "./moderation.js";
-import { setupServerLog } from "./serverlog.js";
-import { helpCommands, handleHelp } from "./help.js";
-import { setupRenewReminder, handleRenewButton } from "./renew.js";
-import { giveawayCommands, handleGiveaway, handleGiveawayAutocomplete, setupGiveaways } from "./giveaway.js";
-import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./music.js";
+import { askAI, checkConfig, describeModel, errorReply } from "./src/ai/ai.js";
+import * as memory from "./src/storage/memory.js";
+import { commands, buildPrompt, avatarReply, spamReply, specialUsers, tagName } from "./src/fun/commands.js";
+import { moderationCommands, handleModeration, setupLogging } from "./src/moderation/moderation.js";
+import { setupServerLog } from "./src/moderation/serverlog.js";
+import { helpCommands, handleHelp } from "./src/fun/help.js";
+import { setupRenewReminder, handleRenewButton } from "./src/system/renew.js";
+import { giveawayCommands, handleGiveaway, handleGiveawayAutocomplete, setupGiveaways } from "./src/giveaway/giveaway.js";
+import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./src/radio/music.js";
 
 const ALL_COMMANDS = [...helpCommands, ...commands, ...moderationCommands, ...musicCommands, ...giveawayCommands];
 

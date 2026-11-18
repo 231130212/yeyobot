@@ -1,7 +1,7 @@
 // Log aktivitas server ala Dyno: voice, role, nickname, member masuk/keluar.
 // Channel-nya diatur per server pakai /setlog (cadangannya channel bernama #log-server atau #log-moderasi).
 import { EmbedBuilder, Events } from "discord.js";
-import { findLogChannel } from "./settings.js";
+import { findLogChannel } from "../storage/settings.js";
 
 const GREEN = 0x2ecc71;
 const RED = 0xe74c3c;

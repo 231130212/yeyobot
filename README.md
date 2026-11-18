@@ -124,7 +124,12 @@ Bagian ini untuk yang mau menjalankan bot ini dengan akun dan kepribadian sendir
 Buka https://aistudio.google.com/apikey dan login pakai akun Google.
 
 ### 3. Isi konfigurasi
-Salin `.env.example` jadi `.env`, lalu isi minimal `DISCORD_TOKEN` dan `GEMINI_API_KEY`.
+Bikin file bernama `.env` di folder bot, lalu isi variabel dari tabel di bawah, satu per baris. Minimal:
+```
+DISCORD_TOKEN=token_bot_kamu
+GEMINI_API_KEY=api_key_gemini_kamu
+```
+File `.env` otomatis diabaikan git (ada di `.gitignore`), jadi nggak ikut ke GitHub. Kalau jalan di hosting, isi variabelnya di panel hosting aja, nggak perlu file `.env`.
 
 | Variabel | Fungsi | Default |
 |---|---|---|
@@ -139,7 +144,7 @@ Salin `.env.example` jadi `.env`, lalu isi minimal `DISCORD_TOKEN` dan `GEMINI_A
 | `SERVER_LOG_CHANNEL` | Nama channel log aktivitas kalau belum pakai `/setlog` | `log-server` |
 | `SPECIAL_USER_IDS` | ID user (pisahkan koma) yang dapat "mode lembut", selain pembuat bot | – |
 
-**Jangan pernah** menaruh token atau API key asli di `.env.example` atau file lain yang ikut ke GitHub.
+**Jangan pernah** menaruh token atau API key asli di file selain `.env`, karena file lain ikut ke GitHub.
 
 ### 4. Jalankan di komputer
 Butuh **Node.js 22.12 atau lebih baru**.
@@ -172,4 +177,19 @@ CLAUDE_MODEL=claude-haiku-5-5
 `claude-haiku-5-5` paling murah. Hapus `CLAUDE_MODEL` kalau mau pakai model default yang lebih pintar, `claude-opus-5-5`.
 
 ### Ganti kepribadian
-Edit teks di `persona.js`, lalu restart bot. Di file itu kamu bisa mengubah nama, gaya bicara, dan batasannya. Pembuat bot (pemilik aplikasi di Developer Portal) otomatis mendapat "mode lembut": bot tetap bercanda tapi nggak nyelekit ke dia.
+Edit teks di `src/ai/persona.js`, lalu restart bot. Di file itu kamu bisa mengubah nama, gaya bicara, dan batasannya. Pembuat bot (pemilik aplikasi di Developer Portal) otomatis mendapat "mode lembut": bot tetap bercanda tapi nggak nyelekit ke dia.
+
+### Struktur folder
+
+```
+index.js              Pintu masuk bot: nyambungin semua fitur ke Discord
+src/
+  ai/                 Otak AI (Gemini/Claude) dan kepribadian bot (persona.js)
+  fun/                Command seru (/roast, /ramal, /pilih, /spam, dll.) dan /help
+  giveaway/           /giveaway
+  moderation/         /kick, /ban, /timeout, /setlog, dan log server
+  radio/              /radio
+  storage/            Penyimpanan ingatan obrolan dan pengaturan per server
+  system/             Baca file .env dan pengingat perpanjang hosting
+data/                 Data yang disimpan bot (nggak ikut ke GitHub)
+```
