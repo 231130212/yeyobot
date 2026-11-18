@@ -157,7 +157,7 @@ Supaya bot tetap nyala walau komputer mati, bot ini bisa dijalankan di [bot-host
 
 Catatan:
 - **Update kode:** push ke GitHub, lalu klik **Restart** di panel. Bot otomatis mengambil kode terbaru.
-- Paket gratis harus **diperpanjang manual tiap 4 hari** di panel. Kalau lupa, bot mati.
+- Paket gratis harus **diperpanjang manual tiap 4 hari** di panel. Kalau lupa, bot mati. Biar nggak lupa, bikin channel `#renewal-bot` di server yang owner-nya kamu (pemilik bot): bot akan nge-tag kamu di sana tiap 3 hari (dan tiap 6 jam kalau belum dikonfirmasi), lengkap dengan tombol ke panel dan tombol **Udah diperpanjang**. Nama channel dan link panel bisa diganti lewat `RENEW_CHANNEL` dan `RENEW_PANEL_URL`.
 - Jangan menjalankan bot di komputer dan di hosting sekaligus, nanti bot membalas dobel.
 
 ### Kuota dan pindah ke Claude

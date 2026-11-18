@@ -6,6 +6,7 @@ import { commands, buildPrompt, avatarReply, spamReply, specialUsers, tagName } 
 import { moderationCommands, handleModeration, setupLogging } from "./moderation.js";
 import { setupServerLog } from "./serverlog.js";
 import { helpCommands, handleHelp } from "./help.js";
+import { setupRenewReminder, handleRenewButton } from "./renew.js";
 import { giveawayCommands, handleGiveaway, handleGiveawayAutocomplete, setupGiveaways } from "./giveaway.js";
 import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./music.js";
 
@@ -138,6 +139,7 @@ setupLogging(discord);
 setupMusic(discord);
 setupServerLog(discord);
 setupGiveaways(discord);
+setupRenewReminder(discord);
 
 discord.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
@@ -198,6 +200,7 @@ discord.on(Events.InteractionCreate, async (interaction) => {
     await handler(interaction).catch(() => {});
     return;
   }
+  if (await handleRenewButton(interaction).catch((error) => console.error("Gagal tombol perpanjang:", error))) return;
   if (await handleGiveaway(interaction).catch((error) => console.error("Gagal giveaway:", error))) return;
   if (!interaction.isChatInputCommand()) return;
 
