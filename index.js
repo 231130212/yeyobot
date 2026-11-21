@@ -9,6 +9,7 @@ import { helpCommands, handleHelp } from "./src/fun/help.js";
 import { setupRenewReminder, handleRenewButton } from "./src/system/renew.js";
 import { giveawayCommands, handleGiveaway, handleGiveawayAutocomplete, setupGiveaways } from "./src/giveaway/giveaway.js";
 import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./src/radio/music.js";
+import { findMorse } from "./src/fun/morse.js";
 
 const ALL_COMMANDS = [...helpCommands, ...commands, ...moderationCommands, ...musicCommands, ...giveawayCommands];
 
@@ -94,12 +95,18 @@ async function collectImages(message) {
 function respond(channelId, userText, images, send, beforeAsk) {
   return enqueue(channelId, async () => {
     memory.addMessage(channelId, "user", userText);
+    // Tulisan "sedang mengetik..." di Discord hilang sendiri setelah ~10 detik,
+    // jadi dikirim ulang terus selama AI masih mikir supaya nggak kelihatan batal.
+    let typing = null;
     try {
       await beforeAsk?.();
+      if (beforeAsk) typing = setInterval(() => beforeAsk().catch(() => {}), 8_000);
       const reply = await askAI(memory.getHistory(channelId), images);
       memory.addMessage(channelId, "assistant", reply);
+      clearInterval(typing);
       await send(reply);
     } catch (error) {
+      clearInterval(typing);
       memory.removeLast(channelId, userText); // supaya ingatan tetap rapi
       await send(errorReply(error)).catch(() => {});
     }
@@ -178,7 +185,14 @@ discord.on(Events.MessageCreate, async (message) => {
     message.author.id,
   );
   const imageNote = images.length ? ` (kirim ${images.length} gambar)` : "";
-  const userText = `[${name}]:${imageNote} ${content || "(tanpa teks)"}`;
+  // Kode Morse diterjemahin pakai kode dulu, biar AI nggak salah baca dan nggak mikir kelamaan
+  const morse = findMorse(content);
+  const morseNote = morse.length
+    ? `\n(Catatan sistem: kode Morse di pesan ini sudah diterjemahkan dengan pasti: ${morse
+        .map((m) => `"${m}"`)
+        .join(", ")}. Pakai terjemahan ini, jangan terjemahin ulang sendiri.)`
+    : "";
+  const userText = `[${name}]:${imageNote} ${content || "(tanpa teks)"}${morseNote}`;
 
   await respond(
     message.channel.id,
