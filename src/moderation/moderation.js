@@ -1,6 +1,7 @@
 // Moderasi server: /timeout, /untimeout, /kick, /ban, /unban, /hapus + log ke channel khusus
 import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags, Events, ChannelType } from "discord.js";
 import { findLogChannel as findChannel, setLogChannel } from "../storage/settings.js";
+import { cacheImages, takeImages } from "./imagecache.js";
 
 const DURATIONS = [
   { name: "1 menit", value: 60 },
@@ -112,10 +113,19 @@ function findLogChannel(guild) {
   return findChannel(guild, "moderasi");
 }
 
-async function sendLog(guild, embed) {
+async function sendLog(guild, embed, files = []) {
   const channel = findLogChannel(guild);
   if (!channel) return;
-  await channel.send({ embeds: [embed] }).catch((error) => console.warn("Gagal kirim log:", error.message));
+  try {
+    await channel.send({ embeds: [embed], files });
+  } catch (error) {
+    console.warn("Gagal kirim log:", error.message);
+    // Biasanya karena bot nggak punya izin Attach Files: kirim ulang tanpa gambar biar log-nya tetap ada
+    if (files.length) {
+      embed.setImage(null).setFooter({ text: "Gambar nggak bisa dilampirkan (cek izin Attach Files bot)" });
+      await channel.send({ embeds: [embed] }).catch(() => {});
+    }
+  }
 }
 
 function logAction(interaction, title, description, color) {
@@ -284,6 +294,13 @@ const HANDLERS = {
           `Gue nggak bisa nulis di ${channel}. Kasih gue izin *View Channel*, *Send Messages*, dan *Embed Links* di sana dulu.`,
         );
       }
+      if (!perms.has("AttachFiles") && kinds.includes("moderasi")) {
+        for (const k of kinds) setLogChannel(interaction.guildId, k, channel.id);
+        return privateReply(
+          interaction,
+          `✅ ${label} sekarang dikirim ke ${channel}. Tapi gue belum punya izin *Attach Files* di sana, jadi gambar dari pesan yang dihapus nggak bisa ikut ditampilin.`,
+        );
+      }
     }
     for (const k of kinds) setLogChannel(interaction.guildId, k, channel?.id ?? null);
     return privateReply(
@@ -316,22 +333,36 @@ export async function handleModeration(interaction) {
 
 /** Catat pesan yang dihapus dan diedit ke channel log. */
 export function setupLogging(client) {
+  // Simpan salinan gambar duluan, karena begitu pesannya dihapus gambarnya ikut hilang dari Discord.
+  // Cuma di server yang punya channel log, biar nggak buang-buang storage.
+  client.on(Events.MessageCreate, (message) => {
+    if (!message.guild || message.author.bot || !message.attachments.size) return;
+    const logChannel = findLogChannel(message.guild);
+    if (logChannel && logChannel.id !== message.channelId) cacheImages(message);
+  });
+
   client.on(Events.MessageDelete, async (message) => {
     // Pesan yang dikirim sebelum bot nyala tidak diketahui isinya, jadi dilewati
     if (message.partial || !message.guild || message.author?.bot) return;
     if (findLogChannel(message.guild)?.id === message.channelId) return; // jangan nge-log channel log itu sendiri
 
+    const images = await takeImages(message.id);
     const parts = [];
     if (message.content) parts.push(cut(message.content));
     if (message.attachments.size) parts.push(`📎 ${message.attachments.map((a) => a.name).join(", ")}`);
 
+    const embed = new EmbedBuilder()
+      .setTitle("🗑️ Pesan dihapus")
+      .setDescription(`**${message.author.username}** di <#${message.channelId}>\n\n${parts.join("\n") || "(kosong)"}`)
+      .setColor(0xe74c3c)
+      .setTimestamp();
+    // Gambar pertama tampil di dalam kotak log, sisanya ikut dilampirkan di bawahnya
+    if (images.length) embed.setImage(`attachment://${images[0].name}`);
+
     await sendLog(
       message.guild,
-      new EmbedBuilder()
-        .setTitle("🗑️ Pesan dihapus")
-        .setDescription(`**${message.author.username}** di <#${message.channelId}>\n\n${parts.join("\n") || "(kosong)"}`)
-        .setColor(0xe74c3c)
-        .setTimestamp(),
+      embed,
+      images.map((file) => ({ attachment: file.path, name: file.name })),
     );
   });
 
