@@ -5,13 +5,13 @@ import { PERSONA } from "./persona.js";
 const PROVIDER = (process.env.AI_PROVIDER ?? "gemini").toLowerCase();
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL ?? "claude-opus-5-5";
 // Bisa diisi beberapa model dipisah koma: dicoba berurutan kalau model sebelumnya penuh/error/jatahnya habis.
-// Urutannya dari yang paling pintar (jatah gratis kecil) ke yang paling ringan (jatah gratis besar).
-const GEMINI_MODELS = (process.env.GEMINI_MODEL ?? "gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite")
+// gemini-3.8-flash sengaja nggak dipakai: lebih pintar, tapi sering penuh (503) dan mikirnya lama.
+const GEMINI_MODELS = (process.env.GEMINI_MODEL ?? "gemini-3.6-flash,gemini-3.5-flash-lite")
   .split(",")
   .map((m) => m.trim())
   .filter(Boolean);
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const GEMINI_TIMEOUT_MS = 45_000;
+const GEMINI_TIMEOUT_MS = 30_000; // kelamaan dari ini -> langsung coba model cadangan
 
 export const REFUSAL_REPLY =
   "Hmm, yang itu gue skip dulu ya. Coba topik lain, yang lebih aman buat kesehatan kita bersama.";
