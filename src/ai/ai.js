@@ -4,8 +4,9 @@ import { PERSONA } from "./persona.js";
 
 const PROVIDER = (process.env.AI_PROVIDER ?? "gemini").toLowerCase();
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL ?? "claude-opus-5-5";
-// Bisa diisi beberapa model dipisah koma: dicoba berurutan kalau model sebelumnya penuh/error
-const GEMINI_MODELS = (process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite,gemini-3.6-flash")
+// Bisa diisi beberapa model dipisah koma: dicoba berurutan kalau model sebelumnya penuh/error/jatahnya habis.
+// Urutannya dari yang paling pintar (jatah gratis kecil) ke yang paling ringan (jatah gratis besar).
+const GEMINI_MODELS = (process.env.GEMINI_MODEL ?? "gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite")
   .split(",")
   .map((m) => m.trim())
   .filter(Boolean);
@@ -106,8 +107,10 @@ async function askGemini(history, images) {
       return await callGemini(model, messages);
     } catch (error) {
       lastError = error;
-      // Server penuh/error/timeout -> coba model berikutnya. Kuota habis (429) atau key salah -> berhenti.
-      if (!(error instanceof GeminiError) || error.status < 500) throw error;
+      // Server penuh/error/timeout atau jatah model ini habis (429) -> coba model berikutnya.
+      // Error lain (misalnya key salah) -> berhenti, karena model lain juga pasti gagal.
+      const retryable = error instanceof GeminiError && (error.status >= 500 || error.status === 429);
+      if (!retryable) throw error;
       console.warn(`Model ${model} gagal (${error.status}), mencoba model cadangan...`);
     }
   }
