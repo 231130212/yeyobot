@@ -2,11 +2,11 @@
 
 Bot Discord yang bisa diajak ngobrol dengan gaya sarkas dan satir. Otaknya pakai **Gemini** (gratis, default) atau **Claude** (berbayar).
 
-**Fitur:** ngobrol dan lihat gambar, roasting teman (sampai lagu Spotify-nya), ramalan dan nasihat ngawur, radio di voice channel, moderasi, serta log aktivitas server ala Dyno.
+**Fitur:** ngobrol dan lihat gambar, video TikTok/Reels IG langsung bisa diputar, roasting teman (sampai lagu Spotify-nya), ramalan dan nasihat ngawur, radio di voice channel, moderasi, serta log aktivitas server ala Dyno.
 
 ## Undang ke server kamu
 
-[**➕ Tambahkan Yeyo Rosting ke server**](https://discord.com/oauth2/authorize?client_id=1571845991177523230&scope=bot+applications.commands&permissions=1099514866694)
+[**➕ Tambahkan Yeyo Rosting ke server**](https://discord.com/oauth2/authorize?client_id=1571845991177523230&scope=bot+applications.commands&permissions=1099514899462)
 
 Setelah bot masuk:
 1. Di **Server Settings → Roles**, seret role bot ke atas role member biasa (supaya moderasi jalan).
@@ -21,11 +21,18 @@ Bot ini jalan di hosting gratis dan memakai kuota Gemini gratis yang dibagi ke s
 - Bikin channel bernama `ngobrol-sama-bot`. Di channel itu bot membalas semua pesan tanpa perlu di-mention.
 - **Kirim gambar** (foto, meme, screenshot) sambil mention bot, atau di channel `ngobrol-sama-bot`. Dia akan mengomentarinya. Maksimal 3 gambar per pesan, masing-masing 5 MB.
 - Ketik `!reset` atau `/reset` untuk menghapus ingatan obrolan di channel itu.
-
 - Kirim **kode Morse** (titik, strip, `/` antar-kata) dan bot menerjemahkannya dengan tepat. Penerjemahnya pakai tabel, bukan tebakan AI.
 - Bot tahu tanggal dan jam sekarang (WIB), dan hitungan angka dikerjakan pakai kalkulator, bukan dihitung di kepala AI.
 
 Bot nggak bisa disuruh nge-tag orang lewat chat. Balasannya nggak pernah nge-ping siapa pun (termasuk `@everyone`). Kalau mau nge-roast orang sambil nge-tag, pakai `/roast`.
+
+## Video TikTok dan Reels IG langsung diputar
+
+Kalau ada yang kirim link TikTok atau Instagram (reel/post), bot menghapus pesan aslinya lalu mengirim ulang dengan link yang videonya bisa diputar langsung di Discord, lengkap dengan nama pengirimnya. Bot nggak download videonya sendiri: link-nya cuma diganti ke layanan gratis pihak ketiga ([tnktok.com](https://github.com/okdargy/fxTikTok) untuk TikTok, `eeinstagram.com` untuk Instagram).
+
+- Butuh izin **Manage Messages**. Tanpa izin itu (atau kalau pesannya ada lampiran file, atau pesannya lagi ngajak bot ngobrol), pesan aslinya dibiarkan dan bot cuma membalas dengan link yang sudah dibenerin.
+- Link yang dibungkus `<...>` (sengaja tanpa preview) nggak disentuh.
+- Layanan pihak ketiga kayak gini kadang mati atau ganti nama. Kalau video berhenti muncul, ganti domainnya lewat `TIKTOK_EMBED_DOMAIN` / `INSTAGRAM_EMBED_DOMAIN` di panel hosting (kosongkan untuk mematikan fitur ini).
 
 ## Slash command
 
@@ -148,6 +155,8 @@ File `.env` otomatis diabaikan git (ada di `.gitignore`), jadi nggak ikut ke Git
 | `LOG_CHANNEL` | Nama channel log moderasi kalau belum pakai `/setlog` | `log-moderasi` |
 | `SERVER_LOG_CHANNEL` | Nama channel log aktivitas kalau belum pakai `/setlog` | `log-server` |
 | `SPECIAL_USER_IDS` | ID user (pisahkan koma) yang dapat "mode lembut", selain pembuat bot | – |
+| `TIKTOK_EMBED_DOMAIN` | Layanan buat bikin video TikTok bisa diputar (kosongkan = matikan) | `tnktok.com` |
+| `INSTAGRAM_EMBED_DOMAIN` | Layanan buat bikin Reels/post IG bisa diputar (kosongkan = matikan) | `eeinstagram.com` |
 
 **Jangan pernah** menaruh token atau API key asli di file selain `.env`, karena file lain ikut ke GitHub.
 

@@ -10,6 +10,7 @@ import { setupRenewReminder, handleRenewButton } from "./src/system/renew.js";
 import { giveawayCommands, handleGiveaway, handleGiveawayAutocomplete, setupGiveaways } from "./src/giveaway/giveaway.js";
 import { musicCommands, handleMusic, handleMusicAutocomplete, setupMusic, stopAllMusic } from "./src/radio/music.js";
 import { findMorse } from "./src/fun/morse.js";
+import { handleEmbedFix } from "./src/fun/embedfix.js";
 
 const ALL_COMMANDS = [...helpCommands, ...commands, ...moderationCommands, ...musicCommands, ...giveawayCommands];
 
@@ -154,7 +155,12 @@ discord.on(Events.MessageCreate, async (message) => {
   const isDM = message.channel.type === ChannelType.DM;
   const isMentioned = message.mentions.users.has(discord.user.id);
   const isFreeChat = FREE_CHAT_CHANNEL && message.channel.name === FREE_CHAT_CHANNEL;
-  if (!isDM && !isMentioned && !isFreeChat) return;
+
+  // Link TikTok/Reels IG dikirim ulang biar videonya bisa diputar langsung.
+  // Kalau pesannya juga mau dibales AI, pesan aslinya jangan dihapus.
+  const willChat = isDM || isMentioned || isFreeChat;
+  if (await handleEmbedFix(message, { keepOriginal: willChat })) return;
+  if (!willChat) return;
 
   // Hapus mention bot dari teks, dan ubah mention orang/role lain jadi nama biasa.
   // Jadi AI nggak pernah lihat kode mention, dan nggak bisa disuruh nge-tag orang.

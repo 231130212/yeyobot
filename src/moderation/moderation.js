@@ -331,6 +331,13 @@ export async function handleModeration(interaction) {
   return true;
 }
 
+// Pesan yang dihapus bot sendiri (misalnya link TikTok yang dikirim ulang), jangan dicatat sebagai "pesan dihapus"
+const skippedDeletes = new Set();
+export function skipDeleteLog(messageId) {
+  skippedDeletes.add(messageId);
+  setTimeout(() => skippedDeletes.delete(messageId), 60_000).unref();
+}
+
 /** Catat pesan yang dihapus dan diedit ke channel log. */
 export function setupLogging(client) {
   // Simpan salinan gambar duluan, karena begitu pesannya dihapus gambarnya ikut hilang dari Discord.
@@ -345,6 +352,7 @@ export function setupLogging(client) {
     // Pesan yang dikirim sebelum bot nyala tidak diketahui isinya, jadi dilewati
     if (message.partial || !message.guild || message.author?.bot) return;
     if (findLogChannel(message.guild)?.id === message.channelId) return; // jangan nge-log channel log itu sendiri
+    if (skippedDeletes.has(message.id)) return;
 
     const images = await takeImages(message.id);
     const parts = [];

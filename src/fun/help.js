@@ -56,7 +56,8 @@ const PAGES = {
       `\`/nasihat masalah:...\` Nasihat yang kedengarannya bijak tapi nyeleneh.\n` +
       `\`/pilih pilihan:a, b, c\` Bingung milih? Gue pilihin, lengkap sama alasan ngawurnya.\n` +
       `\`/avatar [target]\` Lihat foto profil ukuran gede.\n` +
-      `\`/spam target [jumlah]\` Panggil-panggil orang 1–5 kali. Ada jeda 1 menit, jangan rakus.`,
+      `\`/spam target [jumlah]\` Panggil-panggil orang 1–5 kali. Ada jeda 1 menit, jangan rakus.\n\n` +
+      `Kirim link **TikTok** atau **Reels IG**? Gue kirim ulang biar videonya langsung bisa diputar di sini, nggak perlu buka app.`,
   },
   radio: {
     label: "Radio",
