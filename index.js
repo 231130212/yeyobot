@@ -68,10 +68,10 @@ function splitMessage(text, limit = 1900) {
   return parts;
 }
 
-/** Ambil gambar dari lampiran pesan dan ubah ke base64. */
-async function collectImages(message) {
-  const attachments = [...message.attachments.values()]
-    .filter((a) => IMAGE_TYPES.has(a.contentType?.split(";")[0]) && a.size <= MAX_IMAGE_BYTES)
+/** Unduh lampiran gambar (dari pesan atau slash command) dan ubah ke base64. Yang bukan gambar dilewati. */
+async function downloadImages(allAttachments) {
+  const attachments = allAttachments
+    .filter((a) => a && IMAGE_TYPES.has(a.contentType?.split(";")[0]) && a.size <= MAX_IMAGE_BYTES)
     .slice(0, MAX_IMAGES);
 
   const images = [];
@@ -92,7 +92,7 @@ async function collectImages(message) {
  * Alur utama: simpan pesan user, minta jawaban AI, simpan jawaban, kirim ke Discord.
  * Gambar hanya dikirim ke AI untuk pesan ini; di ingatan cukup dicatat sebagai teks.
  */
-function respond(channelId, userText, images, send, beforeAsk) {
+function respond(channelId, userText, images, send, beforeAsk, aiOptions) {
   return enqueue(channelId, async () => {
     memory.addMessage(channelId, "user", userText);
     // Tulisan "sedang mengetik..." di Discord hilang sendiri setelah ~10 detik,
@@ -101,7 +101,7 @@ function respond(channelId, userText, images, send, beforeAsk) {
     try {
       await beforeAsk?.();
       if (beforeAsk) typing = setInterval(() => beforeAsk().catch(() => {}), 8_000);
-      const reply = await askAI(memory.getHistory(channelId), images);
+      const reply = await askAI(memory.getHistory(channelId), images, aiOptions);
       memory.addMessage(channelId, "assistant", reply);
       clearInterval(typing);
       await send(reply);
@@ -174,7 +174,7 @@ discord.on(Events.MessageCreate, async (message) => {
     return;
   }
 
-  const images = await collectImages(message);
+  const images = await downloadImages([...message.attachments.values()]);
   if (!content && !images.length) {
     await message.reply("Mention doang tanpa ngomong apa-apa? Kode morse ya?");
     return;
@@ -254,12 +254,23 @@ discord.on(Events.InteractionCreate, async (interaction) => {
   const pingTarget = target && !target.bot && target.id !== interaction.user.id;
   const firstMentions = pingTarget ? { parse: [], users: [target.id] } : NO_PINGS;
 
-  await respond(interaction.channelId, prompt, [], async (reply) => {
-    const parts = splitMessage(reply);
-    if (pingTarget) parts[0] = `<@${target.id}> ${parts[0]}`;
-    await interaction.editReply({ content: parts[0], allowedMentions: firstMentions });
-    for (const part of parts.slice(1)) await interaction.followUp({ content: part, allowedMentions: NO_PINGS });
-  });
+  // /tanya pakai otak paling pintar, dan boleh lampirin foto soal
+  const smart = interaction.commandName === "tanya";
+  const images = smart ? await downloadImages([interaction.options.getAttachment("gambar")]) : [];
+
+  await respond(
+    interaction.channelId,
+    prompt,
+    images,
+    async (reply) => {
+      const parts = splitMessage(reply);
+      if (pingTarget) parts[0] = `<@${target.id}> ${parts[0]}`;
+      await interaction.editReply({ content: parts[0], allowedMentions: firstMentions });
+      for (const part of parts.slice(1)) await interaction.followUp({ content: part, allowedMentions: NO_PINGS });
+    },
+    undefined,
+    { smart },
+  );
 });
 
 // Simpan ingatan sebelum bot dimatikan (Ctrl+C atau dihentikan dari panel hosting)

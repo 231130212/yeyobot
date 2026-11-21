@@ -22,7 +22,10 @@ Bot ini jalan di hosting gratis dan memakai kuota Gemini gratis yang dibagi ke s
 - **Kirim gambar** (foto, meme, screenshot) sambil mention bot, atau di channel `ngobrol-sama-bot`. Dia akan mengomentarinya. Maksimal 3 gambar per pesan, masing-masing 5 MB.
 - Ketik `!reset` atau `/reset` untuk menghapus ingatan obrolan di channel itu.
 
-Bot nggak bisa disuruh nge-tag atau ngatain orang lain lewat chat. Balasannya nggak pernah nge-ping siapa pun (termasuk `@everyone`). Kalau mau nge-roast orang, pakai `/roast`.
+- Kirim **kode Morse** (titik, strip, `/` antar-kata) dan bot menerjemahkannya dengan tepat. Penerjemahnya pakai tabel, bukan tebakan AI.
+- Bot tahu tanggal dan jam sekarang (WIB), dan hitungan angka dikerjakan pakai kalkulator, bukan dihitung di kepala AI.
+
+Bot nggak bisa disuruh nge-tag orang lewat chat. Balasannya nggak pernah nge-ping siapa pun (termasuk `@everyone`). Kalau mau nge-roast orang sambil nge-tag, pakai `/roast`.
 
 ## Slash command
 
@@ -35,6 +38,7 @@ Bot nggak bisa disuruh nge-tag atau ngatain orang lain lewat chat. Balasannya ng
 | `/ramal [pertanyaan]` | Ramalan nyeleneh ala dukun sok tahu |
 | `/nasihat masalah:...` | Nasihat yang kedengarannya bijak tapi nyeleneh |
 | `/pilih pilihan:a, b, c [pertanyaan]` | Bingung milih? Bot milihin secara acak plus alasan ngawur |
+| `/tanya soal:... [gambar]` | Jawab soal atau pertanyaan serius pakai model paling pintar (`GEMINI_SMART_MODEL`, default `gemini-3.8-flash`), dengan langkah-langkahnya. Boleh lampirin foto soal |
 | `/spam target [jumlah]` | Panggil-panggil seseorang 1–5 kali dengan jeda 2 detik (jeda 1 menit sebelum bisa dipakai lagi) |
 | `/reset` | Hapus ingatan bot di channel ini |
 
@@ -136,7 +140,8 @@ File `.env` otomatis diabaikan git (ada di `.gitignore`), jadi nggak ikut ke Git
 | `DISCORD_TOKEN` | Token bot Discord (wajib) | – |
 | `AI_PROVIDER` | `gemini` atau `claude` | `gemini` |
 | `GEMINI_API_KEY` | API key Gemini (wajib kalau pakai Gemini) | – |
-| `GEMINI_MODEL` | Daftar model, dicoba berurutan kalau yang pertama penuh | `gemini-3.5-flash-lite,gemini-3.6-flash` |
+| `GEMINI_MODEL` | Daftar model buat chat biasa, dicoba berurutan kalau yang pertama penuh atau jatahnya habis | `gemini-3.6-flash,gemini-3.5-flash-lite` |
+| `GEMINI_SMART_MODEL` | Model pintar khusus `/tanya` (kalau gagal, turun ke `GEMINI_MODEL`) | `gemini-3.8-flash` |
 | `ANTHROPIC_API_KEY` | API key Claude (wajib kalau pakai Claude) | – |
 | `CLAUDE_MODEL` | Model Claude | `claude-opus-5-5` |
 | `FREE_CHAT_CHANNEL` | Channel tempat bot membalas tanpa di-mention | `ngobrol-sama-bot` |

@@ -22,4 +22,4 @@ Orang spesial:
 Format:
 - Ini chat Discord, jadi jawab singkat: biasanya 1 sampai 4 kalimat. Lebih panjang cuma kalau memang ditanya hal yang butuh penjelasan.
 - Pesan dari user diawali nama mereka dalam kurung siku, contoh "[Budi]: halo". Kamu boleh menyebut nama mereka, tapi jangan menulis awalan kurung siku itu di jawabanmu.
-- Boleh pakai format Markdown Discord (bold, italic, code block) kalau perlu.`;
+- Boleh pakai format Markdown Discord (bold, italic, code block) kalau perlu. Jangan pakai LaTeX ($...$), karena Discord nggak bisa nampilinnya.`;

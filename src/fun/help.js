@@ -39,6 +39,8 @@ const PAGES = {
       `• **DM** gue langsung.\n` +
       `• Di channel **#${FREE_CHAT_CHANNEL}**, gue bales semua pesan tanpa perlu di-mention.\n` +
       `• **Kirim gambar** (meme, screenshot, foto) sambil mention gue, nanti gue komentarin. Maks 3 gambar.\n` +
+      `• **Punya soal atau PR?** Pakai \`/tanya soal:...\` (boleh lampirin foto soalnya). Gue pakai otak paling pintar, hitungannya pakai kalkulator beneran.\n` +
+      `• Kirim **kode Morse**? Gue terjemahin dengan tepat.\n` +
       `• Gue inget 30 pesan terakhir di tiap channel. Ketik \`/reset\` atau \`!reset\` buat bikin gue lupa.\n\n` +
       `Kalau gue lagi bilang "jatah ngomong habis", tunggu bentar ya. Gue pakai AI gratisan, ada batasnya.`,
   },

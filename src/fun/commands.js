@@ -1,4 +1,4 @@
-// Slash command umum: /avatar, /roast, /roastlagu, /ramal, /nasihat, /reset
+// Slash command umum: /avatar, /roast, /roastlagu, /ramal, /nasihat, /pilih, /tanya, /reset, /spam
 import { SlashCommandBuilder, EmbedBuilder, ActivityType } from "discord.js";
 
 export const commands = [
@@ -39,6 +39,13 @@ export const commands = [
     .addStringOption((o) =>
       o.setName("pertanyaan").setDescription("Soal apa? Contoh: makan apa malam ini").setMaxLength(100),
     ),
+  new SlashCommandBuilder()
+    .setName("tanya")
+    .setDescription("Tanya soal atau pertanyaan serius, dijawab pakai otak paling pintar")
+    .addStringOption((o) =>
+      o.setName("soal").setDescription("Soal atau pertanyaannya").setRequired(true).setMaxLength(1500),
+    )
+    .addAttachmentOption((o) => o.setName("gambar").setDescription("Foto soalnya (boleh kosong)")),
   new SlashCommandBuilder().setName("reset").setDescription("Hapus ingatan Yeyo Rosting di channel ini"),
   new SlashCommandBuilder()
     .setName("spam")
@@ -269,6 +276,11 @@ export function buildPrompt(interaction, botUserId) {
         `[${name}]: (pakai /ramal) Ramal nasib gue ${question ? `soal: ${question}` : "hari ini"}. ` +
         `Gaya dukun sok tahu yang nyeleneh, 2-4 kalimat, sertakan "angka keberuntungan" atau "benda keberuntungan" yang absurd.`
       );
+    }
+    case "tanya": {
+      const question = interaction.options.getString("soal", true);
+      const hasImage = Boolean(interaction.options.getAttachment("gambar"));
+      return `[${name}]: (pakai /tanya${hasImage ? ", kirim 1 gambar soal" : ""}) ${question}`;
     }
     case "nasihat": {
       const problem = interaction.options.getString("masalah", true);
